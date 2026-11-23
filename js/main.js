@@ -75,6 +75,68 @@ const revealObserver = new IntersectionObserver(
 $$(".reveal").forEach((el) => revealObserver.observe(el));
 
 /* =========================================================
+   TEXTES ET CONTACT (site.json, modifiable depuis /admin/)
+   ========================================================= */
+async function chargerSite() {
+  try {
+    const res = await fetch("site.json", { cache: "no-cache" });
+    if (res.ok) appliquerSite(await res.json());
+  } catch (err) {
+    console.warn("site.json non chargé, textes par défaut utilisés :", err);
+  } finally {
+    document.documentElement.classList.remove("is-loading");
+  }
+}
+
+function appliquerSite({ textes = {}, contact = {} } = {}) {
+  $$("[data-texte]").forEach((el) => {
+    const v = textes[el.dataset.texte];
+    if (typeof v === "string" && v.trim()) el.textContent = v.trim();
+  });
+
+  const propre = (v = "") => v.toString().trim();
+  const insta = propre(contact.instagram)
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/[/?].*$/, "").replace(/^@/, "");
+  const discord = propre(contact.discord).replace(/^@/, "");
+  const discordId = propre(contact.discordId).replace(/\D/g, "");
+  const email = propre(contact.email);
+
+  const carte = (nom) => $(`[data-contact="${nom}"]`);
+  const remplir = (nom, href, handle) => {
+    const a = carte(nom);
+    if (!a) return;
+    if (!handle) { a.hidden = true; return; }
+    a.hidden = false;
+    $("[data-handle]", a).textContent = handle;
+    if (href) a.href = href; else a.removeAttribute("href");
+  };
+
+  remplir("instagram", insta && `https://instagram.com/${encodeURIComponent(insta)}`, insta && `@${insta}`);
+  remplir("email", email && `mailto:${email}`, email);
+  remplir("discord", discordId && `https://discord.com/users/${discordId}`, discord);
+
+  // Sans identifiant Discord, un clic copie le pseudo
+  const d = carte("discord");
+  if (d && discord && !discordId) {
+    d.removeAttribute("target");
+    d.setAttribute("role", "button");
+    d.tabIndex = 0;
+    const copier = async (e) => {
+      e.preventDefault();
+      const handle = $("[data-handle]", d);
+      try { await navigator.clipboard.writeText(discord); handle.textContent = "Pseudo copié"; }
+      catch { handle.textContent = discord; }
+      setTimeout(() => (handle.textContent = discord), 2000);
+    };
+    d.addEventListener("click", copier);
+    d.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") copier(e); });
+  }
+}
+
+chargerSite();
+setTimeout(() => document.documentElement.classList.remove("is-loading"), 1500);
+
+/* =========================================================
    DONNÉES
    ========================================================= */
 const gallery = $("#gallery");

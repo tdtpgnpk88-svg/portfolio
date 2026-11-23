@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" class="no-js">
+<html lang="fr" class="no-js is-loading">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,9 +45,9 @@
     <section class="hero" id="accueil">
       <div class="container hero__inner">
         <div class="hero__text">
-          <p class="hero__name enter">Antoine · graphiste freelance</p>
-          <h1 class="hero__title enter">Je donne une tête à ta chaîne</h1>
-          <p class="hero__lead enter">
+          <p class="hero__name enter" data-texte="nom">Antoine · graphiste freelance</p>
+          <h1 class="hero__title enter" data-texte="accroche">Je donne une tête à ta chaîne</h1>
+          <p class="hero__lead enter" data-texte="sousTitre">
             PDP, miniatures, bannières et visuels 3D pour les créateurs de contenu,
             faits sur Photoshop et Blender.
           </p>
@@ -186,12 +186,12 @@
       <div class="container split">
         <div class="about__text reveal">
           <h2 class="section__title">Salut, moi c'est Antoine</h2>
-          <p>
+          <p data-texte="aPropos1">
             Je suis graphiste freelance et je travaille avec des créateurs de contenu :
             streamers, YouTubeurs, petits comme grands. Mon but, c'est que ton identité
             visuelle te ressemble et qu'on la reconnaisse tout de suite.
           </p>
-          <p>
+          <p data-texte="aPropos2">
             Je retouche et compose sous Photoshop, et je modélise sous Blender
             quand un projet demande de la 3D.
           </p>
@@ -224,29 +224,29 @@
           <p class="section__lead">Écris-moi où tu préfères, je réponds en général dans la journée.</p>
         </header>
 
-        <!-- ⚠️ Remplace les liens ci-dessous par les tiens -->
+        <!-- Les liens et pseudos sont remplis depuis site.json (modifiable dans /admin/) -->
         <div class="contact reveal">
-          <a class="contact__card" href="https://instagram.com/TON_PSEUDO" target="_blank" rel="noopener">
+          <a class="contact__card" data-contact="instagram" href="https://instagram.com/TON_PSEUDO" target="_blank" rel="noopener">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/></svg>
             <span>
               <span class="contact__name">Instagram</span>
-              <span class="contact__handle mono">@ton_pseudo</span>
+              <span class="contact__handle mono" data-handle>@ton_pseudo</span>
             </span>
           </a>
 
-          <a class="contact__card" href="https://discord.com/users/TON_ID_DISCORD" target="_blank" rel="noopener">
+          <a class="contact__card" data-contact="discord" href="https://discord.com/users/TON_ID_DISCORD" target="_blank" rel="noopener">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5c-1.8.3-3.3.9-4.5 1.8C2 10 1.5 13 1.8 16.5c1.5 1.2 3 1.9 4.7 2.3l1-1.8M16 5.5c1.8.3 3.3.9 4.5 1.8 1.5 2.7 2 5.7 1.7 9.2-1.5 1.2-3 1.9-4.7 2.3l-1-1.8M6.5 16c3.5 1.5 7.5 1.5 11 0M7 7.5c3.3-1 6.7-1 10 0"/><circle cx="9" cy="12.5" r=".8"/><circle cx="15" cy="12.5" r=".8"/></svg>
             <span>
               <span class="contact__name">Discord</span>
-              <span class="contact__handle mono">ton_pseudo</span>
+              <span class="contact__handle mono" data-handle>ton_pseudo</span>
             </span>
           </a>
 
-          <a class="contact__card" href="mailto:ton.email@exemple.com">
+          <a class="contact__card" data-contact="email" href="mailto:ton.email@exemple.com">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="m3 6.5 9 6.5 9-6.5"/></svg>
             <span>
               <span class="contact__name">Email</span>
-              <span class="contact__handle mono">ton.email@exemple.com</span>
+              <span class="contact__handle mono" data-handle>ton.email@exemple.com</span>
             </span>
           </a>
         </div>

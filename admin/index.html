@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Portfolio</title>
+  <meta name="theme-color" content="#141415">
+  <link rel="icon" href="../images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- ============ CONNEXION ============ -->
+  <main class="login" id="login">
+    <form class="login__card" id="login-form" autocomplete="off">
+      <p class="login__brand">antoine <span class="mono">admin</span></p>
+      <h1 class="login__title">Connexion</h1>
+      <p class="login__text">
+        Connecte-toi avec un jeton de ton compte GitHub. Chaque modification que tu
+        publies est enregistrée dans le dépôt <span class="mono" id="repo-name"></span>
+        et le site se met à jour tout seul.
+      </p>
+
+      <label class="field">
+        <span class="field__label">Jeton GitHub</span>
+        <input class="input mono" id="token" type="password" spellcheck="false" placeholder="github_pat_…" required>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="remember" checked>
+        <span>Rester connecté sur cet appareil</span>
+      </label>
+
+      <button class="btn btn--primary btn--block" type="submit" id="login-btn">Se connecter</button>
+      <p class="login__error" id="login-error" role="alert" hidden></p>
+
+      <details class="help">
+        <summary>Créer mon jeton (une seule fois)</summary>
+        <ol>
+          <li>Ouvre <a id="token-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com › Settings › Fine-grained tokens</a>.</li>
+          <li>Donne-lui un nom (par exemple « Admin portfolio ») et une date d'expiration.</li>
+          <li>Dans <strong>Repository access</strong>, choisis <em>Only select repositories</em> puis ton dépôt <span class="mono" id="repo-name-2"></span>.</li>
+          <li>Dans <strong>Permissions</strong>, règle <em>Contents</em> sur <strong>Read and write</strong>. Rien d'autre.</li>
+          <li>Clique sur <em>Generate token</em>, copie le jeton et colle-le ici.</li>
+        </ol>
+        <p>Le jeton reste uniquement dans ce navigateur. Ne le partage avec personne : il permet de modifier ton site.</p>
+      </details>
+    </form>
+  </main>
+
+  <!-- ============ PANEL ============ -->
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <p class="topbar__brand">antoine <span class="mono">admin</span></p>
+        <nav class="topbar__nav" aria-label="Sections du panel">
+          <a href="#creations">Créations</a>
+          <a href="#textes">Textes</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <div class="topbar__actions">
+          <a class="btn btn--ghost btn--sm" id="site-link" href="../" target="_blank" rel="noopener">Voir le site</a>
+          <button class="btn btn--ghost btn--sm" id="logout" type="button">Déconnexion</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="panel">
+      <!-- Créations -->
+      <section class="block" id="creations">
+        <header class="block__head">
+          <h2 class="block__title">Créations</h2>
+          <p class="block__text">L'ordre ici est celui de la galerie. La 1re bannière, la 1re PDP et les 3 premières miniatures apparaissent aussi en haut du site, et la 2e PDP dans l'offre.</p>
+        </header>
+
+        <!-- Ajout -->
+        <div class="add" id="add">
+          <label class="drop" id="drop">
+            <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            <span class="drop__title">Ajouter une création</span>
+            <span class="drop__text">Glisse une image ici ou clique pour la choisir · PNG, JPG, WebP</span>
+          </label>
+
+          <form class="add__form" id="add-form" hidden>
+            <div class="add__preview"><img id="add-img" alt=""></div>
+            <div class="add__fields">
+              <label class="field">
+                <span class="field__label">Titre</span>
+                <input class="input" id="add-title" required maxlength="80">
+              </label>
+              <label class="field">
+                <span class="field__label">Catégorie</span>
+                <select class="input" id="add-cat"></select>
+              </label>
+              <p class="add__meta mono" id="add-meta"></p>
+              <div class="add__actions">
+                <button class="btn btn--primary" type="submit">Ajouter en haut de la galerie</button>
+                <button class="btn btn--ghost" type="button" id="add-cancel">Annuler</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="toolbar">
+          <div class="chips" id="chips" role="group" aria-label="Filtrer la liste"></div>
+        </div>
+
+        <ol class="list" id="list"></ol>
+        <p class="empty" id="list-empty" hidden>Aucune création dans cette catégorie.</p>
+      </section>
+
+      <!-- Textes -->
+      <section class="block" id="textes">
+        <header class="block__head">
+          <h2 class="block__title">Textes</h2>
+          <p class="block__text">Laisse un champ vide pour garder le texte d'origine.</p>
+        </header>
+        <div class="form" id="form-textes"></div>
+      </section>
+
+      <!-- Contact -->
+      <section class="block" id="contact">
+        <header class="block__head">
+          <h2 class="block__title">Contact</h2>
+          <p class="block__text">Laisse un champ vide pour masquer la carte correspondante sur le site.</p>
+        </header>
+        <div class="form" id="form-contact"></div>
+      </section>
+    </main>
+
+    <!-- Barre de publication -->
+    <div class="publish" id="publish">
+      <div class="publish__inner">
+        <p class="publish__status" id="status" role="status">Tout est publié</p>
+        <div class="publish__actions">
+          <button class="btn btn--ghost" type="button" id="discard" disabled>Annuler les modifications</button>
+          <button class="btn btn--primary" type="button" id="publish-btn" disabled>Publier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>

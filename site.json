@@ -1,0 +1,15 @@
+{
+  "textes": {
+    "nom": "Antoine · graphiste freelance",
+    "accroche": "Je donne une tête à ta chaîne",
+    "sousTitre": "PDP, miniatures, bannières et visuels 3D pour les créateurs de contenu, faits sur Photoshop et Blender.",
+    "aPropos1": "Je suis graphiste freelance et je travaille avec des créateurs de contenu : streamers, YouTubeurs, petits comme grands. Mon but, c'est que ton identité visuelle te ressemble et qu'on la reconnaisse tout de suite.",
+    "aPropos2": "Je retouche et compose sous Photoshop, et je modélise sous Blender quand un projet demande de la 3D."
+  },
+  "contact": {
+    "instagram": "ton_pseudo",
+    "discord": "ton_pseudo",
+    "discordId": "",
+    "email": "ton.email@exemple.com"
+  }
+}

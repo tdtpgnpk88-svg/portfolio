@@ -4,8 +4,10 @@ Site statique (HTML, CSS, JavaScript), sans framework ni build.
 
 ```
 portfolio/
-├── index.html        ← le contenu du site (textes, liens de contact)
+├── index.html        ← la structure du site
 ├── projets.json      ← la liste des créations affichées dans la galerie
+├── site.json         ← tes textes (accroche, à propos) et tes contacts
+├── admin/            ← le panel admin
 ├── css/style.css     ← le design (couleur d'accent : variable --accent en haut)
 ├── js/main.js        ← galerie, filtres, lightbox, animations
 └── images/
@@ -15,7 +17,35 @@ portfolio/
     └── 3d/
 ```
 
-## Ajouter une création
+## Le panel admin (le plus simple)
+
+Adresse : **https://tdtpgnpk88-svg.github.io/portfolio/admin/**
+
+Il permet, sans toucher au code :
+- d'ajouter une création (glisser une image, choisir un titre et une catégorie) ;
+  les grosses images sont réduites et converties automatiquement ;
+- de renommer, réordonner ou supprimer tes créations ;
+- de modifier tes textes (accroche, sous-titre, à propos) et tes contacts.
+
+Rien ne change sur le site tant que tu n'as pas cliqué sur **Publier**. Ensuite, le site
+se met à jour en 1 à 2 minutes.
+
+**Connexion** : le site n'a pas de serveur, donc le panel se connecte à ton compte GitHub
+avec un *jeton* (une sorte de mot de passe limité à ce dépôt). À créer une seule fois :
+
+1. Va sur https://github.com/settings/personal-access-tokens/new
+2. Nom : « Admin portfolio ». Expiration : celle que tu veux (à renouveler ensuite).
+3. *Repository access* : **Only select repositories**, puis `portfolio`.
+4. *Permissions* : **Contents** sur **Read and write**. Rien d'autre.
+5. *Generate token*, copie-le et colle-le dans le panel.
+
+Le jeton reste dans ton navigateur. Ne le partage avec personne. S'il fuit, supprime-le
+sur la même page GitHub et crée-en un nouveau.
+
+Si tu modifies aussi les fichiers sur ton PC, fais d'abord `git pull` pour récupérer ce
+que le panel a publié, sinon ton `git push` sera refusé.
+
+## Ajouter une création à la main
 
 1. Exporte ton image depuis Photoshop ou Blender en **JPG ou WebP**, autour de
    1600 px de large au maximum (≈ 200 à 400 Ko). Le site reste ainsi rapide sur mobile.
@@ -88,11 +118,11 @@ La galerie lit `projets.json`. Or le navigateur bloque cette lecture si tu ouvre
 
 ## À personnaliser avant de partager le lien
 
-- Dans `index.html`, section **Contact** : remplace `TON_PSEUDO`, `TON_ID_DISCORD`
-  et `ton.email@exemple.com` par tes vrais liens.
+- Tes contacts (Instagram, Discord, email) et tes textes se changent dans le panel
+  admin, sections **Contact** et **Textes**, ou à la main dans `site.json`.
   Ton ID Discord : Paramètres, Avancés, active le « Mode développeur », puis clic
-  droit sur ton profil et « Copier l'identifiant de l'utilisateur ».
-- Le pseudo et la phrase d'accroche sont dans la section **Hero**, en haut de `index.html`.
+  droit sur ton profil et « Copier l'identifiant de l'utilisateur ». Sans ID, un clic
+  sur la carte Discord copie ton pseudo.
 - Pour passer au violet : dans `css/style.css`, remplace `--accent: #22e4ff;` par
   `--accent: #b48cff;` et `--accent-ink: #04161b;` par `--accent-ink: #1a0d33;`.
   Pense aussi à la couleur de survol du bouton (`.btn--primary:hover`).
