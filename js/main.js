@@ -115,6 +115,16 @@ function appliquerChaine(chaine = {}) {
   const subs = champ("abonnes");
   if (abonnes) subs.textContent = ` · ${/abonn/i.test(abonnes) ? abonnes : `${abonnes} abonnés`}`;
   else if (handle) subs.hidden = true;
+
+  // Vidéos de l'aperçu : durée affichée seulement si elle est renseignée
+  // (une miniature choisie sans durée n'a pas de badge, elle en a souvent déjà un)
+  (Array.isArray(chaine.videos) ? chaine.videos : []).forEach((v = {}, i) => {
+    const badge = $(`[data-duree="${i}"]`);
+    if (!badge) return;
+    const duree = propre(v.duree);
+    if (duree) badge.textContent = duree;
+    else if (propre(v.image)) badge.hidden = true;
+  });
 }
 
 function appliquerSite({ textes = {}, contact = {}, chaine = {} } = {}) {
@@ -230,8 +240,9 @@ function remplirEmplacements(site = {}) {
   });
 
   $$("[data-title]").forEach((el) => {
+    const choisi = reglage(el.dataset.override);
     const p = parCategorie(el.dataset.title)[Number(el.dataset.n)];
-    el.textContent = p ? titreCourt(p.titre) : "";
+    el.textContent = (typeof choisi === "string" && choisi.trim()) || (p ? titreCourt(p.titre) : "");
   });
 }
 

@@ -316,3 +316,9 @@ select.input { appearance: none; padding-right: 36px;
 .picker__defaut { padding: 8px; font-size: 12px; line-height: 16px; text-align: center; color: var(--text-3); }
 .picker__meta { min-height: 16px; }
 .picker__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- Vidéos de l'aperçu ---------- */
+.block__sub { margin-top: 40px; font-size: 18px; font-weight: 500; line-height: 24px; }
+.videos { display: grid; gap: 12px; margin-top: 16px; }
+@media (min-width: 720px) { .videos { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.picker__preview--miniature { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--r); }

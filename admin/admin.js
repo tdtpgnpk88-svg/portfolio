@@ -61,9 +61,20 @@ const IMAGES_SITE = {
     { cle: "image", label: "Image de l'offre", forme: "rond", max: 800, defaut: "2e PDP de tes créations" },
   ],
 };
-const cheminsImagesSite = () =>
-  Object.entries(IMAGES_SITE).flatMap(([g, defs]) => defs.map((d) => (etat.site[g] || {})[d.cle]))
-    .filter((c) => typeof c === "string" && c.trim());
+/* Les 3 vidéos de l'aperçu de chaîne : miniature, titre et durée */
+const NB_VIDEOS = 3;
+const VIDEOS = Array.from({ length: NB_VIDEOS }, (_, i) => ({
+  cle: "image", video: i, label: `Vidéo ${i + 1}`, forme: "miniature", max: 1280,
+  defaut: `${i + 1}${i ? "e" : "re"} miniature de tes créations`,
+}));
+
+/* Objet qui contient l'image : etat.site.chaine, etat.site.offre ou une vidéo */
+const cible = (groupe, d) => (d.video !== undefined ? etat.site.chaine.videos[d.video] : etat.site[groupe]);
+
+const cheminsImagesSite = () => [
+  ...Object.entries(IMAGES_SITE).flatMap(([g, defs]) => defs.map((d) => (etat.site[g] || {})[d.cle])),
+  ...((etat.site.chaine || {}).videos || []).map((v) => v.image),
+].filter((c) => typeof c === "string" && c.trim());
 
 const IMAGE_MAX = 2400;       // largeur max après optimisation (px)
 const POIDS_ALERTE = 15e6;    // au-delà, on refuse (15 Mo)
@@ -226,6 +237,8 @@ async function chargerDonnees() {
     chaine: { nom: "", handle: "", abonnes: "", avatar: "", banniere: "", ...(site.chaine || {}) },
     offre: { image: "", ...(site.offre || {}) },
   };
+  const videos = Array.isArray(etat.site.chaine.videos) ? etat.site.chaine.videos : [];
+  etat.site.chaine.videos = Array.from({ length: NB_VIDEOS }, (_, i) => ({ image: "", titre: "", duree: "", ...(videos[i] || {}) }));
 
   etat.imagesConnues = new Set([...etat.projets.map((p) => p.image), ...cheminsImagesSite()]);
   etat.aEnvoyer.clear();
@@ -273,10 +286,26 @@ function rendreImagesSite() {
     const box = $(`#pickers-${groupe}`);
     box.replaceChildren(...defs.map((d) => picker(groupe, d)));
   });
+
+  // vidéos : miniature + titre + durée
+  $("#videos-chaine").replaceChildren(...VIDEOS.map((d) => {
+    const v = etat.site.chaine.videos[d.video];
+    const champ = (cle, label, props = {}) => el("label", { class: "field" },
+      el("span", { class: "field__label" }, label),
+      el("input", {
+        class: "input", type: "text", value: v[cle] || "", ...props,
+        oninput: (e) => { v[cle] = e.target.value; majBarre(); },
+      }),
+    );
+    return picker("chaine", d, [
+      champ("titre", "Titre", { maxlength: "100", placeholder: "Vide = titre de la création" }),
+      champ("duree", "Durée (facultatif)", { placeholder: "7:04", class: "input mono" }),
+    ]);
+  }));
 }
 
-function picker(groupe, d) {
-  const chemin = (etat.site[groupe][d.cle] || "").trim();
+function picker(groupe, d, extra = []) {
+  const chemin = (cible(groupe, d)[d.cle] || "").trim();
   const nouveau = chemin && etat.aEnvoyer.has(chemin);
 
   const apercu = el("div", { class: `picker__preview picker__preview--${d.forme}` });
@@ -304,6 +333,7 @@ function picker(groupe, d) {
       chemin ? el("button", { class: "btn btn--ghost btn--sm", type: "button", onclick: () => definirImageSite(groupe, d, "") }, "Par défaut") : null,
     ),
     input,
+    ...extra,
   );
 }
 
@@ -314,7 +344,8 @@ async function choisirImageSite(groupe, d, fichier) {
     const img = await chargerImage(source);
     const { blob, ext } = await optimiser(fichier, img, d.max);
     if (blob.size > POIDS_ALERTE) throw new Error("Image trop lourde (plus de 15 Mo), même après optimisation.");
-    const chemin = `images/site/${groupe}-${d.cle}-${Date.now().toString(36)}.${ext}`;
+    const nom = d.video !== undefined ? `video-${d.video + 1}` : d.cle;
+    const chemin = `images/site/${groupe}-${nom}-${Date.now().toString(36)}.${ext}`;
     etat.aEnvoyer.set(chemin, blob);
     etat.apercus.set(chemin, URL.createObjectURL(blob));
     definirImageSite(groupe, d, chemin);
@@ -326,10 +357,11 @@ async function choisirImageSite(groupe, d, fichier) {
 }
 
 function definirImageSite(groupe, d, chemin) {
-  const ancien = (etat.site[groupe][d.cle] || "").trim();
+  const objet = cible(groupe, d);
+  const ancien = (objet[d.cle] || "").trim();
   // une image choisie puis remplacée avant publication n'est jamais envoyée
   if (ancien && ancien !== chemin && etat.aEnvoyer.has(ancien)) etat.aEnvoyer.delete(ancien);
-  etat.site[groupe][d.cle] = chemin;
+  objet[d.cle] = chemin;
   rendreImagesSite();
   rendreListe();
   majBarre();
@@ -422,7 +454,8 @@ function usageEnHaut(cat, rang) {
   if (cat === "bannieres" && rang === 1 && !choisie("chaine", "banniere")) return "Aperçu de chaîne (bannière)";
   if (cat === "pdp" && rang === 1 && !choisie("chaine", "avatar")) return "Aperçu de chaîne (PDP)";
   if (cat === "pdp" && rang === 2 && !choisie("offre", "image")) return "PDP de l'offre";
-  if (cat === "miniatures" && rang <= 3) return `Aperçu de chaîne (miniature ${rang})`;
+  const video = ((etat.site.chaine || {}).videos || [])[rang - 1];
+  if (cat === "miniatures" && rang <= 3 && !(video && video.image)) return `Aperçu de chaîne (vidéo ${rang})`;
   return "";
 }
 
