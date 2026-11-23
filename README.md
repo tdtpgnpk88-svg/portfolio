@@ -19,7 +19,7 @@ portfolio/
 
 ## Le panel admin (le plus simple)
 
-Adresse : **https://tdtpgnpk88-svg.github.io/portfolio/admin/**
+Adresse : **https://tdtpgnpk88-svg.github.io/portfolio/***************/**
 
 Il permet, sans toucher au code :
 - d'ajouter une création (glisser une image, choisir un titre et une catégorie) ;
