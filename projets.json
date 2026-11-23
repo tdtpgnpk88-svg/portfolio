@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "titre": "Bannière de Nitax",
+    "categorie": "bannieres",
+    "image": "images/bannieres/banniere-de-nitax-mwsktujr.png"
+  },
+  {
+    "titre": "Photo de profil TikTok de Nitax",
+    "categorie": "pdp",
+    "image": "images/pdp/photo-de-profil-tiktok-de-nitax-mwsktbiq.png"
+  }
+]
