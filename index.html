@@ -57,17 +57,17 @@
           </div>
         </div>
 
-        <!-- Aperçu d'une page de chaîne : rempli automatiquement avec
-             la 1re bannière, la 1re PDP et les 3 premières miniatures de projets.json -->
-        <div class="channel enter" role="img" aria-label="Exemple de page de chaîne habillée avec mes créations">
-          <div class="channel__banner slot" data-slot="bannieres" data-n="0"></div>
+        <!-- Aperçu de ta chaîne : nom, pseudo, PDP et bannière depuis site.json (panel admin),
+             sinon la 1re bannière et la 1re PDP de projets.json ; miniatures = les 3 premières -->
+        <div class="channel enter">
+          <div class="channel__banner slot" data-slot="bannieres" data-n="0" data-override="chaine.banniere"></div>
           <div class="channel__head">
-            <div class="channel__avatar slot" data-slot="pdp" data-n="0"></div>
+            <div class="channel__avatar slot" data-slot="pdp" data-n="0" data-override="chaine.avatar"></div>
             <div class="channel__id">
-              <p class="channel__name">Ta chaîne</p>
-              <p class="channel__meta mono">@ta_chaine<span class="channel__subs"> · 12,4 k abonnés</span></p>
+              <p class="channel__name" data-chaine="nom">Ta chaîne</p>
+              <p class="channel__meta mono"><span data-chaine="handle">@ta_chaine</span><span class="channel__subs" data-chaine="abonnes"> · 12,4 k abonnés</span></p>
             </div>
-            <span class="channel__sub">S'abonner</span>
+            <a class="channel__sub" data-chaine="lien" href="#contact">S'abonner</a>
           </div>
           <div class="channel__videos">
             <div class="video">
@@ -174,7 +174,7 @@
           </div>
 
           <figure class="offer__pdp" aria-hidden="true">
-            <div class="offer__avatar slot" data-slot="pdp" data-n="1"></div>
+            <div class="offer__avatar slot" data-slot="pdp" data-n="1" data-override="offre.image"></div>
             <figcaption class="mono">800 × 800 · offerte</figcaption>
           </figure>
         </div>

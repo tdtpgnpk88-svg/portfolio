@@ -291,3 +291,28 @@ select.input { appearance: none; padding-right: 36px;
   *, *::before, *::after { transition-duration: .01ms !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- Choix d'image (PDP de la chaîne, bannière, offre) ---------- */
+.pickers { display: grid; gap: 12px; margin-top: 24px; max-width: 640px; }
+@media (min-width: 720px) { .pickers { grid-template-columns: 200px minmax(0, 1fr); } }
+.pickers:empty { display: none; }
+.picker {
+  display: grid; gap: 12px; align-content: start;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.picker.is-new { border-color: rgb(34 228 255 / .35); }
+.picker__label { font-size: 14px; color: var(--text-2); }
+.picker__preview {
+  display: grid; place-items: center;
+  background: var(--raised);
+  overflow: hidden;
+}
+.picker__preview--rond { width: 96px; height: 96px; border-radius: 50%; }
+.picker__preview--banniere { width: 100%; aspect-ratio: 3 / 1; border-radius: var(--r); }
+.picker__preview img { width: 100%; height: 100%; object-fit: cover; }
+.picker__defaut { padding: 8px; font-size: 12px; line-height: 16px; text-align: center; color: var(--text-3); }
+.picker__meta { min-height: 16px; }
+.picker__actions { display: flex; flex-wrap: wrap; gap: 8px; }

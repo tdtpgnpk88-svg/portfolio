@@ -44,7 +44,26 @@ const CHAMPS = {
     { cle: "discordId", label: "Discord · identifiant (facultatif)", aide: "Chiffres seulement. Discord › Paramètres › Avancés › Mode développeur, puis clic droit sur ton profil › Copier l'identifiant. Sans lui, un clic sur la carte copie ton pseudo.", placeholder: "123456789012345678", mono: true },
     { cle: "email", label: "Email", placeholder: "toi@exemple.com", inputType: "email" },
   ],
+  chaine: [
+    { cle: "nom", label: "Nom de la chaîne", placeholder: "NekoWasHere59" },
+    { cle: "handle", label: "Pseudo YouTube", aide: "Sans le @. Le bouton « S'abonner » mène à cette chaîne.", placeholder: "NekoWasHere59", mono: true },
+    { cle: "abonnes", label: "Abonnés (facultatif)", aide: "Par exemple « 1,2 k ». Vide = non affiché.", placeholder: "1,2 k" },
+  ],
 };
+
+/* Images du site choisies dans le panel (sinon le site prend celles de la galerie) */
+const IMAGES_SITE = {
+  chaine: [
+    { cle: "avatar", label: "Photo de profil", forme: "rond", max: 800, defaut: "1re PDP de tes créations" },
+    { cle: "banniere", label: "Bannière", forme: "banniere", max: 2560, defaut: "1re bannière de tes créations" },
+  ],
+  offre: [
+    { cle: "image", label: "Image de l'offre", forme: "rond", max: 800, defaut: "2e PDP de tes créations" },
+  ],
+};
+const cheminsImagesSite = () =>
+  Object.entries(IMAGES_SITE).flatMap(([g, defs]) => defs.map((d) => (etat.site[g] || {})[d.cle]))
+    .filter((c) => typeof c === "string" && c.trim());
 
 const IMAGE_MAX = 2400;       // largeur max après optimisation (px)
 const POIDS_ALERTE = 15e6;    // au-delà, on refuse (15 Mo)
@@ -135,6 +154,7 @@ const etat = {
   site: { textes: {}, contact: {} },
   imagesConnues: new Set(),   // images présentes dans le dépôt au chargement
   aEnvoyer: new Map(),        // chemin → Blob (nouvelles images)
+  apercus: new Map(),         // chemin → URL locale, pour afficher une image pas encore publiée
   reference: "",              // instantané pour savoir s'il y a des changements
   filtre: "tout",
   enCours: false,
@@ -200,9 +220,14 @@ async function chargerDonnees() {
     .map((p) => ({ titre: p.titre || "", categorie: normaliser(p.categorie), image: p.image }));
 
   const site = JSON.parse(siteTxt || "{}");
-  etat.site = { textes: { ...(site.textes || {}) }, contact: { ...(site.contact || {}) } };
+  etat.site = {
+    textes: { ...(site.textes || {}) },
+    contact: { ...(site.contact || {}) },
+    chaine: { nom: "", handle: "", abonnes: "", avatar: "", banniere: "", ...(site.chaine || {}) },
+    offre: { image: "", ...(site.offre || {}) },
+  };
 
-  etat.imagesConnues = new Set(etat.projets.map((p) => p.image));
+  etat.imagesConnues = new Set([...etat.projets.map((p) => p.image), ...cheminsImagesSite()]);
   etat.aEnvoyer.clear();
   etat.reference = instantane();
 }
@@ -235,6 +260,78 @@ function rendreTout() {
   rendreListe();
   rendreFormulaire("textes", $("#form-textes"));
   rendreFormulaire("contact", $("#form-contact"));
+  rendreFormulaire("chaine", $("#form-chaine"));
+  rendreImagesSite();
+  majBarre();
+}
+
+/* =========================================================
+   IMAGES DU SITE (PDP et bannière de la chaîne, image de l'offre)
+   ========================================================= */
+function rendreImagesSite() {
+  Object.entries(IMAGES_SITE).forEach(([groupe, defs]) => {
+    const box = $(`#pickers-${groupe}`);
+    box.replaceChildren(...defs.map((d) => picker(groupe, d)));
+  });
+}
+
+function picker(groupe, d) {
+  const chemin = (etat.site[groupe][d.cle] || "").trim();
+  const nouveau = chemin && etat.aEnvoyer.has(chemin);
+
+  const apercu = el("div", { class: `picker__preview picker__preview--${d.forme}` });
+  if (chemin) {
+    const img = el("img", { alt: "", src: etat.apercus.get(chemin) || `../${chemin}` });
+    img.addEventListener("error", () => { if (!img.dataset.raw) { img.dataset.raw = "1"; img.src = urlRaw(chemin); } });
+    apercu.append(img);
+  } else {
+    apercu.append(el("span", { class: "picker__defaut" }, "Par défaut"));
+  }
+
+  const input = el("input", { type: "file", accept: "image/png,image/jpeg,image/webp", hidden: true });
+  input.addEventListener("change", async () => {
+    const f = input.files[0];
+    input.value = "";
+    if (f) await choisirImageSite(groupe, d, f);
+  });
+
+  return el("div", { class: `picker${nouveau ? " is-new" : ""}` },
+    el("p", { class: "picker__label" }, d.label),
+    apercu,
+    el("p", { class: "picker__meta mono" }, chemin ? (nouveau ? "Nouvelle, pas encore publiée" : chemin.split("/").pop()) : d.defaut),
+    el("div", { class: "picker__actions" },
+      el("button", { class: "btn btn--ghost btn--sm", type: "button", onclick: () => input.click() }, chemin ? "Changer" : "Choisir une image"),
+      chemin ? el("button", { class: "btn btn--ghost btn--sm", type: "button", onclick: () => definirImageSite(groupe, d, "") }, "Par défaut") : null,
+    ),
+    input,
+  );
+}
+
+async function choisirImageSite(groupe, d, fichier) {
+  if (!fichier.type.startsWith("image/")) return statut("Ce fichier n'est pas une image.", "error");
+  const source = URL.createObjectURL(fichier);
+  try {
+    const img = await chargerImage(source);
+    const { blob, ext } = await optimiser(fichier, img, d.max);
+    if (blob.size > POIDS_ALERTE) throw new Error("Image trop lourde (plus de 15 Mo), même après optimisation.");
+    const chemin = `images/site/${groupe}-${d.cle}-${Date.now().toString(36)}.${ext}`;
+    etat.aEnvoyer.set(chemin, blob);
+    etat.apercus.set(chemin, URL.createObjectURL(blob));
+    definirImageSite(groupe, d, chemin);
+  } catch (err) {
+    statut(err.message || "Impossible de lire cette image.", "error");
+  } finally {
+    URL.revokeObjectURL(source);
+  }
+}
+
+function definirImageSite(groupe, d, chemin) {
+  const ancien = (etat.site[groupe][d.cle] || "").trim();
+  // une image choisie puis remplacée avant publication n'est jamais envoyée
+  if (ancien && ancien !== chemin && etat.aEnvoyer.has(ancien)) etat.aEnvoyer.delete(ancien);
+  etat.site[groupe][d.cle] = chemin;
+  rendreImagesSite();
+  rendreListe();
   majBarre();
 }
 
@@ -321,9 +418,10 @@ function rendreListe() {
 
 /* Indique les créations reprises en haut du site ou dans l'offre */
 function usageEnHaut(cat, rang) {
-  if (cat === "bannieres" && rang === 1) return "Aperçu de chaîne (bannière)";
-  if (cat === "pdp" && rang === 1) return "Aperçu de chaîne (PDP)";
-  if (cat === "pdp" && rang === 2) return "PDP de l'offre";
+  const choisie = (g, c) => ((etat.site[g] || {})[c] || "").trim();
+  if (cat === "bannieres" && rang === 1 && !choisie("chaine", "banniere")) return "Aperçu de chaîne (bannière)";
+  if (cat === "pdp" && rang === 1 && !choisie("chaine", "avatar")) return "Aperçu de chaîne (PDP)";
+  if (cat === "pdp" && rang === 2 && !choisie("offre", "image")) return "PDP de l'offre";
   if (cat === "miniatures" && rang <= 3) return `Aperçu de chaîne (miniature ${rang})`;
   return "";
 }
@@ -402,10 +500,10 @@ const chargerImage = (src) => new Promise((ok, ko) => {
 });
 
 /* Réduit les très grandes images et les convertit en WebP si c'est plus léger */
-async function optimiser(fichier, img) {
+async function optimiser(fichier, img, max = IMAGE_MAX) {
   const extOrigine = (fichier.name.split(".").pop() || "png").toLowerCase().replace("jpeg", "jpg");
   if (fichier.type === "image/gif") return { blob: fichier, ext: "gif" };
-  const echelle = Math.min(1, IMAGE_MAX / img.naturalWidth);
+  const echelle = Math.min(1, max / img.naturalWidth);
   if (echelle === 1 && fichier.size < 600 * 1024) return { blob: fichier, ext: extOrigine };
 
   const canvas = document.createElement("canvas");
@@ -520,7 +618,7 @@ async function publier() {
     const arbreBase = commit.tree.sha;
 
     const arbre = [];
-    const utilisees = new Set(etat.projets.map((p) => p.image));
+    const utilisees = new Set([...etat.projets.map((p) => p.image), ...cheminsImagesSite()]);
 
     // 1. nouvelles images
     let i = 0;
@@ -568,10 +666,12 @@ async function publier() {
 }
 
 function resume(nbRetirees) {
-  const nouvelles = [...etat.aEnvoyer.keys()].length;
+  const nouvelles = etat.projets.filter((p) => p._nouveau).length;
+  const imagesSite = [...etat.aEnvoyer.keys()].filter((c) => c.startsWith("images/site/")).length;
   const morceaux = [];
   if (nouvelles) morceaux.push(`${nouvelles} création${nouvelles > 1 ? "s" : ""} ajoutée${nouvelles > 1 ? "s" : ""}`);
-  if (nbRetirees) morceaux.push(`${nbRetirees} retirée${nbRetirees > 1 ? "s" : ""}`);
+  if (imagesSite) morceaux.push(`${imagesSite} image${imagesSite > 1 ? "s" : ""} de la chaîne ou de l'offre`);
+  if (nbRetirees) morceaux.push(`${nbRetirees} image${nbRetirees > 1 ? "s" : ""} retirée${nbRetirees > 1 ? "s" : ""}`);
   return `Mise à jour depuis le panel admin${morceaux.length ? ` : ${morceaux.join(", ")}` : ""}`;
 }
 

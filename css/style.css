@@ -633,3 +633,7 @@ h1, h2, h3 { font-weight: 500; line-height: 1.1; }
   }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* Bouton « S'abonner » de l'aperçu : lien vers ta chaîne */
+a.channel__sub { transition: background-color var(--fast) var(--ease); }
+a.channel__sub:hover { background: #ffffff; }

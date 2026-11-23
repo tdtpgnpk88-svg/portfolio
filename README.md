@@ -25,6 +25,8 @@ Il permet, sans toucher au code :
 - d'ajouter une création (glisser une image, choisir un titre et une catégorie) ;
   les grosses images sont réduites et converties automatiquement ;
 - de renommer, réordonner ou supprimer tes créations ;
+- de régler l'aperçu de ta chaîne en haut du site (nom, pseudo YouTube, abonnés,
+  photo de profil, bannière) et l'image de l'offre ;
 - de modifier tes textes (accroche, sous-titre, à propos) et tes contacts.
 
 Rien ne change sur le site tant que tu n'as pas cliqué sur **Publier**. Ensuite, le site

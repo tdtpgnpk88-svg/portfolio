@@ -80,15 +80,45 @@ $$(".reveal").forEach((el) => revealObserver.observe(el));
 async function chargerSite() {
   try {
     const res = await fetch("site.json", { cache: "no-cache" });
-    if (res.ok) appliquerSite(await res.json());
+    if (res.ok) {
+      const site = await res.json();
+      appliquerSite(site);
+      return site;
+    }
   } catch (err) {
     console.warn("site.json non chargé, textes par défaut utilisés :", err);
   } finally {
     document.documentElement.classList.remove("is-loading");
   }
+  return {};
 }
 
-function appliquerSite({ textes = {}, contact = {} } = {}) {
+/* Aperçu de chaîne : nom, pseudo, abonnés et lien « S'abonner » */
+function appliquerChaine(chaine = {}) {
+  const propre = (v = "") => v.toString().trim();
+  const handle = propre(chaine.handle)
+    .replace(/^https?:\/\/(www\.)?youtube\.com\//i, "").replace(/^@/, "").replace(/[/?].*$/, "");
+  const nom = propre(chaine.nom);
+  const abonnes = propre(chaine.abonnes);
+
+  const champ = (cle) => $(`[data-chaine="${cle}"]`);
+  if (nom) champ("nom").textContent = nom;
+  if (handle) {
+    champ("handle").textContent = `@${handle}`;
+    const lien = champ("lien");
+    lien.href = `https://www.youtube.com/@${encodeURIComponent(handle)}?sub_confirmation=1`;
+    lien.target = "_blank";
+    lien.rel = "noopener";
+    lien.setAttribute("aria-label", `S'abonner à ${nom || "@" + handle} sur YouTube`);
+  }
+  // « 1,2 k » → « · 1,2 k abonnés » ; vide → masqué
+  const subs = champ("abonnes");
+  if (abonnes) subs.textContent = ` · ${/abonn/i.test(abonnes) ? abonnes : `${abonnes} abonnés`}`;
+  else if (handle) subs.hidden = true;
+}
+
+function appliquerSite({ textes = {}, contact = {}, chaine = {} } = {}) {
+  appliquerChaine(chaine);
   $$("[data-texte]").forEach((el) => {
     const v = textes[el.dataset.texte];
     if (typeof v === "string" && v.trim()) el.textContent = v.trim();
@@ -133,7 +163,7 @@ function appliquerSite({ textes = {}, contact = {} } = {}) {
   }
 }
 
-chargerSite();
+const sitePret = chargerSite();
 setTimeout(() => document.documentElement.classList.remove("is-loading"), 1500);
 
 /* =========================================================
@@ -158,7 +188,7 @@ async function chargerProjets() {
         image: p.image,
       }));
 
-    remplirEmplacements();
+    remplirEmplacements(await sitePret);
     compterFiltres();
     afficher("tout");
 
@@ -168,6 +198,7 @@ async function chargerProjets() {
     if (cible && cible.id !== "accueil") cible.scrollIntoView({ behavior: "instant" });
   } catch (err) {
     console.error("Impossible de charger projets.json :", err);
+    remplirEmplacements(await sitePret);
     emptyMsg.hidden = false;
     emptyMsg.textContent =
       location.protocol === "file:"
@@ -179,15 +210,20 @@ async function chargerProjets() {
 /* ---------- Aperçu de chaîne + PDP de l'offre ----------
    Chaque emplacement data-slot="categorie" data-n="rang" reçoit
    la création correspondante. S'il n'y en a pas, il reste un aplat gris. */
-function remplirEmplacements() {
+function remplirEmplacements(site = {}) {
   const parCategorie = (cat) => projets.filter((p) => p.categorie === cat);
+  // "chaine.avatar" → site.chaine.avatar (image choisie dans le panel admin)
+  const reglage = (chemin = "") => chemin.split(".").reduce((o, k) => (o || {})[k], site);
 
   $$("[data-slot]").forEach((slot) => {
+    if (slot.querySelector("img")) return;
+    const choisie = reglage(slot.dataset.override);
     const liste = parCategorie(slot.dataset.slot);
     const p = liste[Number(slot.dataset.n)] || liste[0];
-    if (!p) return;
+    const src = (typeof choisie === "string" && choisie.trim()) || (p && p.image);
+    if (!src) return;
     const img = document.createElement("img");
-    img.src = p.image;
+    img.src = src;
     img.alt = "";
     img.decoding = "async";
     slot.prepend(img);
